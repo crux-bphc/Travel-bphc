@@ -1,5 +1,6 @@
 package com.crux.pratd.travelbphc;
 
+import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.net.sip.SipSession;
 import android.os.Bundle;
@@ -15,12 +16,21 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
 
 public class plannerActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    Calendar myCalendar;
+    TextView seldate;
+    DatePickerDialog.OnDateSetListener date;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +55,21 @@ public class plannerActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        seldate=(TextView)findViewById(R.id.travel_date);
+        myCalendar = Calendar.getInstance();
+        date = new DatePickerDialog.OnDateSetListener() {
+
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear,
+                                  int dayOfMonth) {
+                // TODO Auto-generated method stub
+                myCalendar.set(Calendar.YEAR, year);
+                myCalendar.set(Calendar.MONTH, monthOfYear);
+                myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                seldate.setText(new SimpleDateFormat("dd/mm/yy", Locale.US).format(myCalendar.getTime()));
+            }
+
+        };
     }
 
     @Override
@@ -73,13 +98,6 @@ public class plannerActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.filter) {
-            TextView seldate=(TextView)findViewById(R.id.travel_date);
-            seldate.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-
-                }
-            });
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Filter");
             builder.setView(R.layout.apply_filter);
@@ -94,10 +112,19 @@ public class plannerActivity extends AppCompatActivity
             });
             AlertDialog dialog = builder.create();
             dialog.show();
+            if(seldate!=null)
+            seldate.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    new DatePickerDialog(plannerActivity.this, date, myCalendar
+                            .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
+                            myCalendar.get(Calendar.DAY_OF_MONTH)).show();
+                }
+            });
             return true;
         }
-
         return super.onOptionsItemSelected(item);
+
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -106,18 +133,9 @@ public class plannerActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        if (id == R.id.nav_search) {
+        } else if (id == R.id.nav_req) {
+        } else if (id == R.id.log_out) {
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
