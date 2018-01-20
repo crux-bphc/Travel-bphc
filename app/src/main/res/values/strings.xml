@@ -3,6 +3,8 @@
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
+    <string name="facebook_app_id">1535367966540808</string>
+    <string name="fb_login_protocol_scheme">fb1535367966540808</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Log in</string>
     <string name="action_sign_in_short">Sign in</string>
