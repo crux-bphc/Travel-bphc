@@ -70,25 +70,25 @@
             android:textSize="22sp"
             android:textStyle="italic" />
 
-        <EditText
+        <TextView
             android:id="@+id/time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="10dp"
-            android:background="@android:color/transparent"
+            android:textColor="@android:color/black"
             android:inputType="time"
             android:text="16:00"
             android:textSize="22sp"
             android:textStyle="bold" />
 
-        <EditText
+        <TextView
             android:id="@+id/date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="60dp"
-            android:background="@android:color/transparent"
+            android:textColor="@android:color/black"
             android:inputType="date"
             android:text="13.01.2017"
             android:textSize="24sp"

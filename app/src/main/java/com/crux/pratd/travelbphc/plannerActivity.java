@@ -1,14 +1,15 @@
 package com.crux.pratd.travelbphc;
 
-import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.sip.SipSession;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -19,24 +20,27 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.DatePicker;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.support.v7.widget.RecyclerView;
 
-import com.facebook.FacebookSdk;
 import com.facebook.login.LoginManager;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
-import org.w3c.dom.Text;
-
-import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Locale;
+import java.util.List;
 
 public class plannerActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-
+    FirebaseDatabase mDatabase;
+    DatabaseReference mRef;
     Calendar myCalendar;
-    DatePickerDialog.OnDateSetListener date;
+    private PlanAdapter adapter;
+    final private List<TravelPlan> plan_list = new ArrayList<>();
+    private RecyclerView recyclerView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,6 +66,31 @@ public class plannerActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         myCalendar = Calendar.getInstance();
+
+        recyclerView=findViewById(R.id.rec_view);
+        adapter = new PlanAdapter(plan_list);
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(adapter);
+
+        mDatabase=FirebaseDatabase.getInstance();
+        mRef=mDatabase.getReference();
+        Log.d("here",mRef.toString());
+        mRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds:dataSnapshot.getChildren())
+                {
+                    Log.d("here",ds.toString());
+                    plan_list.add(ds.getValue(TravelPlan.class));
+                }
+                adapter.notifyDataSetChanged();
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
     }
 
     @Override
@@ -91,11 +120,14 @@ public class plannerActivity extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.filter) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            LayoutInflater lay_inf=this.getLayoutInflater();
+            final View dialogview=lay_inf.inflate(R.layout.apply_filter,null);
             builder.setTitle("Filter");
-            builder.setView(R.layout.apply_filter);
+            builder.setView(dialogview);
             builder.setPositiveButton("Apply", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
-
+                    DatePicker dp=dialogview.findViewById(R.id.datePicker2);
+                    Log.d("here",""+dp.getYear());
                 }
             });
             builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -107,8 +139,8 @@ public class plannerActivity extends AppCompatActivity
             return true;
         }
         return super.onOptionsItemSelected(item);
-
     }
+
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -122,7 +154,6 @@ public class plannerActivity extends AppCompatActivity
             Intent intent=new Intent(plannerActivity.this,LoginActivity.class);
             startActivity(intent);
             finish();
-
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
