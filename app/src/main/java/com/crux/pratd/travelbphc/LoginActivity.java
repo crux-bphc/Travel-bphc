@@ -36,6 +36,7 @@ import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
+import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 
@@ -73,11 +74,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    AccessToken userToken;
     CallbackManager callbackManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if( AccessToken.getCurrentAccessToken() != null)
+        userToken=AccessToken.getCurrentAccessToken();
+        if( userToken != null)
         {
             Intent intent=new Intent(LoginActivity.this , plannerActivity.class);
             startActivity(intent);
