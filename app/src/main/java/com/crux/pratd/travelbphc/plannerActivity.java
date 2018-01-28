@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
-import android.text.format.Time;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,7 +29,6 @@ import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.squareup.picasso.Picasso;
 import java.util.Calendar;
-import java.util.Date;
 
 public class plannerActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -77,7 +75,7 @@ public class plannerActivity extends AppCompatActivity
         View hView =  navigationView.getHeaderView(0);
         TextView uName=hView.findViewById(R.id.userName);
         ImageView iv=hView.findViewById(R.id.userDP);
-        Log.d("ProfileLink",fbProfile.getLinkUri()+"");
+        Log.d("ProfileLink",fbProfile.getId()+"");
         Picasso.with(getApplicationContext()).load(fbProfile.getProfilePictureUri(100,100)).into(iv);
         iv.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -171,22 +169,26 @@ public class plannerActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
+        Fragment frag=null;
         if (id == R.id.nav_search) {
+            frag=new Search();
         } else if (id == R.id.nav_req) {
+            frag=new Requests();
+        } else if(id==R.id.time_line){
+            frag=new Timeline();
         } else if (id == R.id.log_out) {
             LoginManager.getInstance().logOut();
             Intent intent=new Intent(plannerActivity.this,LoginActivity.class);
             startActivity(intent);
             finish();
+            return true;
         }
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.content_frame, frag);
+        ft.commit();
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
-    }
-    public void createPlan(View view)
-    {
-
     }
 }

@@ -105,7 +105,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         } catch (NoSuchAlgorithmException e) {
 
         }
-        mPasswordView = (EditText) findViewById(R.id.password);
+        mPasswordView = findViewById(R.id.password);
         /*mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -135,6 +135,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     @Override
                     public void onSuccess(LoginResult loginResult) {
                         // App code
+                        Log.d("login","Successfull");
                         Intent intent=new Intent(LoginActivity.this , plannerActivity.class);
                         startActivity(intent);
                     }
@@ -142,6 +143,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     @Override
                     public void onCancel() {
                         // App code
+                        Toast.makeText(getApplicationContext(),"Unable to login",Toast.LENGTH_SHORT).show();
                     }
 
                     @Override

@@ -15,21 +15,10 @@
             android:hint="Choose Date"
             android:textSize="20sp"
             android:textStyle="bold" />
-
-        <!--<DatePicker
-            android:id="@+id/datePicker2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/tv"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="10dp"
-            android:calendarViewShown="?android:attr/windowOverscan" />
-        -->
         <TextView
             android:id="@+id/filter_time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/datePicker2"
             android:layout_marginEnd="10dp"
             android:layout_marginStart="10dp"
             android:layout_marginTop="10dp"
@@ -37,13 +26,4 @@
             android:hint="Choose Time"
             android:textSize="20sp"
             android:textStyle="bold" />
-
-        <!--<TimePicker
-            android:id="@+id/timePicker"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/tv1"
-            android:layout_marginEnd="10dp"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="10dp" />-->
 </LinearLayout>
