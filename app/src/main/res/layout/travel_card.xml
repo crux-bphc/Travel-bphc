@@ -17,10 +17,11 @@
         card_view:layout_constraintTop_toTopOf="parent">
 
         <ImageView
+            android:id="@+id/back_img"
             android:layout_width="match_parent"
             android:layout_height="200dp"
-            android:alpha="0.5"
-            android:background="@drawable/background_flight2" />
+            android:alpha="0.4"
+            android:background="@drawable/flight2" />
 
         <TextView
             android:id="@+id/from_text"

@@ -7,8 +7,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
+import android.text.Layout;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -24,7 +27,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
-import com.facebook.AccessToken;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.squareup.picasso.Picasso;
@@ -49,7 +51,6 @@ public class plannerActivity extends AppCompatActivity
         ft.commit();
 
         lay_inf=this.getLayoutInflater();
-        Log.d("token", AccessToken.getCurrentAccessToken().getToken()+"");
         fbProfile=Profile.getCurrentProfile();
         setupProfile();
 
@@ -66,7 +67,24 @@ public class plannerActivity extends AppCompatActivity
         mt.setChecked(true);
         myCalendar = Calendar.getInstance();
 
+        /*new GraphRequest(
+                AccessToken.getCurrentAccessToken(),
+                "/"+fbProfile.getId()+"/groups",
+                null,
+                HttpMethod.GET,
+                new GraphRequest.Callback() {
+                    @Override
+                    public void onCompleted(GraphResponse response) {
+                        // Insert your code here
+                        Log.d("fbGroup info",response+"");
 
+                    }
+                }).executeAsync();*/
+
+        /*TextView reqCount=(TextView) MenuItemCompat.getActionView(navigationView.getMenu().
+                findItem(R.id.nav_req));
+        reqCount.setGravity(Gravity.CENTER_VERTICAL);
+        reqCount.setText("1");*/
     }
 
     public void setupProfile()
@@ -128,7 +146,6 @@ public class plannerActivity extends AppCompatActivity
                 @Override
                 public void onClick(View view) {
                     DatePickerDialog dp=new DatePickerDialog(plannerActivity.this,dplistener,myCalendar.get(Calendar.YEAR),myCalendar.get(Calendar.MONTH),myCalendar.get(Calendar.DAY_OF_MONTH));
-                    Log.d("year",myCalendar.get(Calendar.YEAR)+"");
                     dp.create();
                     if(!isFinishing())
                         dp.show();

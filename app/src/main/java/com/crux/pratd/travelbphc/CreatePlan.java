@@ -3,7 +3,6 @@ package com.crux.pratd.travelbphc;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
-import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -62,10 +61,30 @@ public class CreatePlan extends AppCompatActivity {
     }
     public void updateDatabase(View view)
     {
-        DatabaseReference dataRef=FirebaseDatabase.getInstance().getReference();
         EditText source=findViewById(R.id.textSource);
         EditText destination=findViewById(R.id.textDest);
-        TravelPlan create=new TravelPlan(source.getText().toString(),destination.getText().toString(),fil_date.getText().toString(),fil_time.getText().toString());
+        if(source.getText().equals(""))
+        {
+            Toast.makeText(getApplicationContext(),"Source field cannot be empty",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(destination.getText().equals(""))
+        {
+            Toast.makeText(getApplicationContext(),"Destination field cannot be empty",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(fil_date.getText().equals(""))
+        {
+            Toast.makeText(getApplicationContext(),"You have not chosen a date",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(fil_time.getText().equals(""))
+        {
+            Toast.makeText(getApplicationContext(),"You have not chosen any time",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        DatabaseReference dataRef=FirebaseDatabase.getInstance().getReference();
+        TravelPlan create=new TravelPlan(source.getText().toString(),destination.getText().toString(),fil_date.getText().toString(),fil_time.getText().toString(),Profile.getCurrentProfile().getId());
         dataRef.child(Profile.getCurrentProfile().getId()).setValue(create);
         Toast.makeText(getApplicationContext(),"Plan created successfully!!",Toast.LENGTH_SHORT).show();
         Intent intent=new Intent(CreatePlan.this,plannerActivity.class);
