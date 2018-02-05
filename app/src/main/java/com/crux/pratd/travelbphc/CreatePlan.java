@@ -6,8 +6,10 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -20,6 +22,7 @@ import java.util.Calendar;
 public class CreatePlan extends AppCompatActivity {
 
     TextView fil_date,fil_time;
+    Spinner spinner;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +61,11 @@ public class CreatePlan extends AppCompatActivity {
                 tpd.show();
             }
         });
+        spinner=findViewById(R.id.spinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.space_for, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
     }
     public void updateDatabase(View view)
     {
@@ -84,8 +92,10 @@ public class CreatePlan extends AppCompatActivity {
             return;
         }
         DatabaseReference dataRef=FirebaseDatabase.getInstance().getReference();
-        TravelPlan create=new TravelPlan(source.getText().toString(),destination.getText().toString(),fil_date.getText().toString(),fil_time.getText().toString(),Profile.getCurrentProfile().getId());
+        String name=Profile.getCurrentProfile().getId();
+        TravelPlan create=new TravelPlan(source.getText().toString(),destination.getText().toString(),fil_date.getText().toString(),fil_time.getText().toString(),name,spinner.getSelectedItem().toString(),name);
         dataRef.child(Profile.getCurrentProfile().getId()).setValue(create);
+        dataRef.child("plans").child(name).setValue(name);
         Toast.makeText(getApplicationContext(),"Plan created successfully!!",Toast.LENGTH_SHORT).show();
         Intent intent=new Intent(CreatePlan.this,plannerActivity.class);
         startActivity(intent);

@@ -24,11 +24,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.DatePicker;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import java.util.Calendar;
 
@@ -94,7 +96,17 @@ public class plannerActivity extends AppCompatActivity
         TextView uName=hView.findViewById(R.id.userName);
         ImageView iv=hView.findViewById(R.id.userDP);
         Log.d("ProfileLink",fbProfile.getId()+"");
-        Picasso.with(getApplicationContext()).load(fbProfile.getProfilePictureUri(100,100)).into(iv);
+        final ProgressBar profileLoad=hView.findViewById(R.id.progressBar2);
+        Picasso.with(getApplicationContext()).load(fbProfile.getProfilePictureUri(100,100)).into(iv, new Callback() {
+            @Override
+            public void onSuccess() {
+                profileLoad.setVisibility(View.GONE);
+            }
+            @Override
+            public void onError() {
+
+            }
+        });
         iv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
