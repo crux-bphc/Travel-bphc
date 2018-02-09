@@ -28,7 +28,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
+import com.facebook.AccessToken;
+import com.facebook.AccessTokenTracker;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookSdk;
 import com.facebook.Profile;
+import com.facebook.ProfileTracker;
 import com.facebook.login.LoginManager;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -37,6 +42,7 @@ import java.util.Calendar;
 public class plannerActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private Profile fbProfile;
+    private ProfileTracker mProfileTracker;
     Calendar myCalendar;
     private LayoutInflater lay_inf;
 
@@ -53,9 +59,24 @@ public class plannerActivity extends AppCompatActivity
         ft.commit();
 
         lay_inf=this.getLayoutInflater();
-        fbProfile=Profile.getCurrentProfile();
-        setupProfile();
 
+        if(Profile.getCurrentProfile() == null) {
+            mProfileTracker = new ProfileTracker() {
+                @Override
+                protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                    fbProfile=currentProfile;
+                    Log.v("facebook - profile", currentProfile.getFirstName());
+                    mProfileTracker.stopTracking();
+                    setupProfile();
+                }
+            };
+            // no need to call startTracking() on mProfileTracker
+            // because it is called by its constructor, internally.
+        }
+        else {
+            fbProfile = Profile.getCurrentProfile();
+            setupProfile();
+        }
         DrawerLayout drawer =findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -95,7 +116,7 @@ public class plannerActivity extends AppCompatActivity
         View hView =  navigationView.getHeaderView(0);
         TextView uName=hView.findViewById(R.id.userName);
         ImageView iv=hView.findViewById(R.id.userDP);
-        Log.d("ProfileLink",fbProfile.getId()+"");
+        Log.d("ProfileLink",(fbProfile==null) +"");
         final ProgressBar profileLoad=hView.findViewById(R.id.progressBar2);
         Picasso.with(getApplicationContext()).load(fbProfile.getProfilePictureUri(100,100)).into(iv, new Callback() {
             @Override
@@ -212,6 +233,8 @@ public class plannerActivity extends AppCompatActivity
             finish();
             return true;
         }
+        else if(id==R.id.nav_share)
+            return true;
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.content_frame, frag);
         ft.commit();

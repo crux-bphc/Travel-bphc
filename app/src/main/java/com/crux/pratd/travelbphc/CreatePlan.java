@@ -71,12 +71,12 @@ public class CreatePlan extends AppCompatActivity {
     {
         EditText source=findViewById(R.id.textSource);
         EditText destination=findViewById(R.id.textDest);
-        if(source.getText().equals(""))
+        if(source.getText().toString().equals(""))
         {
             Toast.makeText(getApplicationContext(),"Source field cannot be empty",Toast.LENGTH_SHORT).show();
             return;
         }
-        if(destination.getText().equals(""))
+        if(destination.getText().toString().equals(""))
         {
             Toast.makeText(getApplicationContext(),"Destination field cannot be empty",Toast.LENGTH_SHORT).show();
             return;

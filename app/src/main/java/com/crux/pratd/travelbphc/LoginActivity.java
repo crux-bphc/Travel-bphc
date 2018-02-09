@@ -33,6 +33,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
+import com.facebook.AccessTokenTracker;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
@@ -40,6 +41,7 @@ import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.Profile;
+import com.facebook.ProfileTracker;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 
@@ -79,14 +81,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mLoginFormView;
     AccessToken userToken;
     CallbackManager callbackManager;
+    ProfileTracker profileTracker;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        userToken=AccessToken.getCurrentAccessToken();
 
+        userToken=AccessToken.getCurrentAccessToken();
         if( userToken != null)
         {
-            Intent intent=new Intent(LoginActivity.this , plannerActivity.class);
+            Intent intent = new Intent(LoginActivity.this, plannerActivity.class);
             startActivity(intent);
             finish();
         }
@@ -136,10 +139,22 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         LoginManager.getInstance().registerCallback(callbackManager,
                 new FacebookCallback<LoginResult>() {
+            ProfileTracker mProfileTracker;
                     @Override
                     public void onSuccess(LoginResult loginResult) {
                         // App code
                         Log.d("login","Successfull");
+                        if(Profile.getCurrentProfile() == null) {
+                            mProfileTracker = new ProfileTracker() {
+                                @Override
+                                protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                                    Log.v("facebook - profile", currentProfile.getFirstName());
+                                    mProfileTracker.stopTracking();
+                                }
+                            };
+                            // no need to call startTracking() on mProfileTracker
+                            // because it is called by its constructor, internally.
+                        }
                         Intent intent=new Intent(LoginActivity.this , plannerActivity.class);
                         startActivity(intent);
                     }

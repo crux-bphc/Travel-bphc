@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,11 +45,16 @@ public class Requests extends Fragment {
 
         final View view= inflater.inflate(R.layout.fragment_requests, container, false);
         final LinearLayout linearLayout=view.findViewById(R.id.disp_req);
+        final TextView msg=new TextView(getActivity());
+        msg.setTextSize(25);
+        msg.setText("No requests to show...");
+        msg.setGravity(Gravity.CENTER);
         mRef.child("requests").child(Profile.getCurrentProfile().getId()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.getValue()!=null)
                 {
+                    linearLayout.removeAllViews();
                     for(DataSnapshot ds:dataSnapshot.getChildren())
                     {
                         final String key=ds.getKey();
@@ -93,6 +99,20 @@ public class Requests extends Fragment {
 
                                     }
                                 });
+                                mRef.child(Profile.getCurrentProfile().getId()).child("space").addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        if(dataSnapshot==null)
+                                            return;
+                                        int i=Integer.parseInt(dataSnapshot.getValue().toString())-1;
+                                        mRef.child(Profile.getCurrentProfile().getId()).child("space").setValue(i+"");
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
                                 linearLayout.removeView(child);
                             }
                         });
@@ -107,9 +127,7 @@ public class Requests extends Fragment {
                     }
                 }
                 else{
-                    TextView msg=new TextView(getActivity());
-                    msg.setTextSize(25);
-                    msg.setText("No requests to show...");
+                    linearLayout.removeAllViews();
                     linearLayout.addView(msg);
                 }
             }

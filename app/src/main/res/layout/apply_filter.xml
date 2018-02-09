@@ -9,21 +9,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="20dp"
             android:layout_marginTop="10dp"
             android:drawableEnd="@android:drawable/ic_menu_today"
             android:hint="Choose Date"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
         <TextView
             android:id="@+id/filter_time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="20dp"
             android:layout_marginTop="10dp"
             android:drawableEnd="@android:drawable/ic_menu_recent_history"
             android:hint="Choose Time"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 </LinearLayout>

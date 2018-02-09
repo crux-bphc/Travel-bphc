@@ -1,13 +1,10 @@
 package com.crux.pratd.travelbphc;
 
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
-import android.provider.ContactsContract;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,7 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.facebook.AccessToken;
@@ -23,11 +19,7 @@ import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.HttpMethod;
 import com.facebook.Profile;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -140,6 +132,8 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                 final AlertDialog.Builder builder=new AlertDialog.Builder(view.getContext());
                 if(creatorId.equals(Profile.getCurrentProfile().getId()))
                     builder.setMessage("You cannot join your own plan!");
+                else if(((TextView)(view.findViewById(R.id.spaceleft))).getText().toString().equals("0"))
+                    builder.setMessage("No Space Left!");
                 else
                 {
                     builder.setMessage("Do you wish to join the selected Plan?");
