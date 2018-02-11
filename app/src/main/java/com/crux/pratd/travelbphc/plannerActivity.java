@@ -233,6 +233,10 @@ public class plannerActivity extends AppCompatActivity
             finish();
             return true;
         }
+        else if(id==R.id.nav_my_plans)
+        {
+            frag=new MyPlans();
+        }
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.content_frame, frag);
         ft.commit();
