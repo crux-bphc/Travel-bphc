@@ -66,12 +66,7 @@ public class MyPlans extends Fragment {
                                 plan_list.add(p);
                                 Log.d("Size",plan_list.size()+"");
                                 adapter.notifyDataSetChanged();
-                                if(plan_list.size()==0)
-                                {
-                                    recycler_status.setVisibility(View.VISIBLE);
-                                    recycler_status.setText("You haven't joined or created any plan...");
-                                }
-                                else
+                                if(plan_list.size()!=0)
                                     recycler_status.setVisibility(View.INVISIBLE);
                             }
                             @Override
@@ -80,6 +75,11 @@ public class MyPlans extends Fragment {
                             }
                         });
                     }
+                }
+                else
+                {
+                    recycler_status.setVisibility(View.VISIBLE);
+                    recycler_status.setText("You haven't joined or created any plan...");
                 }
             }
 
