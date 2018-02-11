@@ -13,13 +13,18 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.HttpMethod;
 import com.facebook.Profile;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
 
@@ -38,6 +43,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
     }
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
+        final DatabaseReference mRef=FirebaseDatabase.getInstance().getReference();
         final TravelPlan plan = plans.get(position);
         holder.source.setText(plan.getSource());
         holder.dest.setText(plan.getDest());
@@ -48,7 +54,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
             @Override
             public void onClick(View view) {
                 Log.d("Travel Card","Displaying Travellers");
-                final String abc[]=plan.getTravellers().split(",");
+                final String travellers_list[]=plan.getTravellers().split(",");
                 AlertDialog.Builder showtravellers=new AlertDialog.Builder(view.getContext());
                 View view1=LayoutInflater.from(view.getContext()).inflate(R.layout.display_travellers,null);
                 LinearLayout linearLayout=view1.findViewById(R.id.listView);
@@ -61,7 +67,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                     }
                 });
                 final AlertDialog dialog=showtravellers.create();
-                for(int i=1;i<=abc.length;i++)
+                for(int i=1;i<=travellers_list.length;i++)
                 {
                     final int z=i;
                     final TextView textView=new TextView(getApplicationContext());
@@ -69,7 +75,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                     textView.setTextColor(Color.WHITE);
                     new GraphRequest(
                     AccessToken.getCurrentAccessToken(),
-                    "/"+abc[i-1],
+                    "/"+travellers_list[i-1],
                     null,
                     HttpMethod.GET,
                     new GraphRequest.Callback() {
@@ -92,7 +98,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                             Intent browserIntent;
                             try {
                                 view.getContext().getPackageManager().getPackageInfo("com.facebook.katana", 0);
-                                browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("fb://facewebmodal/f?href=https://www.facebook.com/"+abc[z-1]));
+                                browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("fb://facewebmodal/f?href=https://www.facebook.com/"+travellers_list[z-1]));
                             } catch (Exception e) {
                                 browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/abc[z-1]"));
                             }
@@ -109,12 +115,72 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
             holder.space_left.setTextColor(Color.rgb(255,0,0));
         else
             holder.space_left.setTextColor(Color.rgb(48,252,3));
-        holder.source.setContentDescription(plan.getCreator());
         if(plan.getSource().equalsIgnoreCase("station")||plan.getDest().equalsIgnoreCase("station"))
             holder.background.setBackgroundResource(R.drawable.train);
         else
             holder.background.setBackgroundResource(R.drawable.flight2);
+        holder.background.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final String creatorId=plan.getCreator();
+                final AlertDialog.Builder builder=new AlertDialog.Builder(view.getContext());
+                if(creatorId.equals(Profile.getCurrentProfile().getId()))
+                    builder.setMessage("You cannot join your own plan!");
+                else if(plan.getSpace().equals("0"))
+                    builder.setMessage("No Space Left!");
+                else if(checkAlreadyJoined(Profile.getCurrentProfile().getId(),plan.getTravellers()))
+                {
+                    builder.setMessage("You are already a part of this plan...\nDo you wish to leave?");
+                    builder.setPositiveButton("Leave", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            plan.setSpace(Integer.toString(Integer.parseInt(plan.getSpace())+1));
+                            plan.setTravellers(removeId(Profile.getCurrentProfile().getId(),plan.getTravellers()));
+                            mRef.child(plan.getCreator()).setValue(plan);
+                        }
+                    });
+                }
+                else
+                {
+                    builder.setMessage("Do you wish to join the selected Plan?");
+                    builder.setPositiveButton("Join", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            mRef.child("requests").child(creatorId).child(Profile.getCurrentProfile().getId()).setValue("I would like to join your plan");
+                            Toast.makeText(getApplicationContext(),"A request has been sent to the creator, you will be notified when your request is accepted.",Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                });
+                builder.create().show();
+            }
+        });
     }
+    public boolean checkAlreadyJoined(String id, String others)
+    {
+        String list[]=others.split(",");
+        for(int i=0;i<list.length;i++)
+            if(list[i].equals(id))
+                return true;
+        return false;
+    }
+    public String removeId(String id, String original)
+    {
+
+        String edited="";
+        String list[]=original.split(",");
+        for(int i=0;i<list.length;i++)
+            if(!list[i].equals(id))
+                edited=edited+list[i]+",";
+        edited=edited.substring(0,edited.length()-1);
+        return edited;
+    }
+
     @Override
     public int getItemCount(){
         return plans.size();
@@ -124,16 +190,31 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         final View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.travel_card, parent, false);
-        itemView.setOnClickListener(new View.OnClickListener() {
+        /*itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Log.d("clicked",view.findViewById(R.id.from_text).getContentDescription()+"");
                 final String creatorId=view.findViewById(R.id.from_text).getContentDescription()+"";
+                FirebaseDatabase.getInstance().getReference().child(creatorId).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
                 final AlertDialog.Builder builder=new AlertDialog.Builder(view.getContext());
                 if(creatorId.equals(Profile.getCurrentProfile().getId()))
                     builder.setMessage("You cannot join your own plan!");
                 else if(((TextView)(view.findViewById(R.id.spaceleft))).getText().toString().equals("0"))
                     builder.setMessage("No Space Left!");
+                else if()
+                {
+
+                }
                 else
                 {
                     builder.setMessage("Do you wish to join the selected Plan?");
@@ -152,7 +233,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                 });
                 builder.create().show();
             }
-        });
+        });*/
         return new MyViewHolder(itemView);
     }
     public class MyViewHolder extends RecyclerView.ViewHolder {

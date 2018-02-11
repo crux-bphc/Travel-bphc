@@ -94,19 +94,19 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|start"
-            android:layout_marginBottom="5dp"
-            android:layout_marginStart="5dp"
+            android:padding="8dp"
             android:text="View Travellers"
             android:textColor="@android:color/black"
-            android:textSize="18sp" />
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/textView3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end|bottom"
-            android:layout_marginBottom="5dp"
             android:layout_marginEnd="20dp"
+            android:padding="8dp"
             android:text="Space for :"
             android:textColor="@android:color/black"
             android:textSize="18sp" />
@@ -116,7 +116,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
-            android:layout_marginBottom="5dp"
+            android:layout_marginBottom="8dp"
             android:layout_marginEnd="5dp"
             android:text="3"
             android:textColor="#30fc03"

@@ -1,6 +1,5 @@
 package com.crux.pratd.travelbphc;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -58,12 +57,11 @@ public class Search extends Fragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mRef.child("plans").child(Profile.getCurrentProfile().getId()).addListenerForSingleValueEvent(new ValueEventListener() {
+                mRef.child(Profile.getCurrentProfile().getId()).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        Log.d("CreateNewPlan Check",dataSnapshot.toString());
                         if(dataSnapshot.getValue()!=null)
-                            Toast.makeText(getActivity(),"You are aleady a part of a plan so you are not allowed to create a new plan",Toast.LENGTH_LONG).show();
+                            Toast.makeText(getActivity(),"You can create only 1 plan at a time!",Toast.LENGTH_LONG).show();
                         else {
                             Intent intent = new Intent(getApplicationContext(), CreatePlan.class);
                             startActivity(intent);

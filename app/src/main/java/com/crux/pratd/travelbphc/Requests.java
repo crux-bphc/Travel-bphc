@@ -17,6 +17,7 @@ import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.HttpMethod;
 import com.facebook.Profile;
+import com.facebook.ProfileTracker;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -85,6 +86,21 @@ public class Requests extends Fragment {
                             public void onClick(View view) {
                                 mRef.child("requests").child(Profile.getCurrentProfile().getId()).child(key).setValue(null);
                                 mRef.child("plans").child(key).setValue(Profile.getCurrentProfile().getId());
+                                mRef.child("plans").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        String s= Profile.getCurrentProfile().getId();
+                                        if(dataSnapshot.getValue()!=null)
+                                            s=dataSnapshot.getValue().toString()+","+s;
+                                        mRef.child("plans").child(key).setValue(s);
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+
                                 mRef.child(Profile.getCurrentProfile().getId()).child("travellers").addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {

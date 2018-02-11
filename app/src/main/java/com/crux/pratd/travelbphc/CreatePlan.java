@@ -15,8 +15,11 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.facebook.Profile;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.Calendar;
 public class CreatePlan extends AppCompatActivity {
@@ -91,11 +94,24 @@ public class CreatePlan extends AppCompatActivity {
             Toast.makeText(getApplicationContext(),"You have not chosen any time",Toast.LENGTH_SHORT).show();
             return;
         }
-        DatabaseReference dataRef=FirebaseDatabase.getInstance().getReference();
-        String name=Profile.getCurrentProfile().getId();
+        final DatabaseReference dataRef=FirebaseDatabase.getInstance().getReference();
+        final String name=Profile.getCurrentProfile().getId();
         TravelPlan create=new TravelPlan(source.getText().toString(),destination.getText().toString(),fil_date.getText().toString(),fil_time.getText().toString(),name,spinner.getSelectedItem().toString(),name);
         dataRef.child(Profile.getCurrentProfile().getId()).setValue(create);
-        dataRef.child("plans").child(name).setValue(name);
+        dataRef.child("plans").child(name).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String s= Profile.getCurrentProfile().getId();
+                if(dataSnapshot.getValue()!=null)
+                    s=dataSnapshot.getValue().toString()+","+s;
+                dataRef.child("plans").child(name).setValue(s);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
         Toast.makeText(getApplicationContext(),"Plan created successfully!!",Toast.LENGTH_SHORT).show();
         Intent intent=new Intent(CreatePlan.this,plannerActivity.class);
         startActivity(intent);
