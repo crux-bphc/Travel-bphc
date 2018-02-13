@@ -39,7 +39,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
         this.plans=travelPlans;
     }
     @Override
-    public void onBindViewHolder(MyViewHolder holder, int position) {
+    public void onBindViewHolder(final MyViewHolder holder, int position) {
         final DatabaseReference mRef=FirebaseDatabase.getInstance().getReference();
         final TravelPlan plan = plans.get(position);
         holder.source.setText(plan.getSource());
@@ -47,67 +47,63 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
         holder.date.setText(plan.getDate());
         holder.time.setText(plan.getTime());
         holder.space_left.setText(plan.getSpace());
-        holder.view_travellers.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d("Travel Card","Displaying Travellers");
-                final String travellers_list[]=plan.getTravellers().split(",");
-                AlertDialog.Builder showtravellers=new AlertDialog.Builder(view.getContext());
-                View view1=LayoutInflater.from(view.getContext()).inflate(R.layout.display_travellers,null);
-                LinearLayout linearLayout=view1.findViewById(R.id.listView);
-                showtravellers.setView(view1);
-                showtravellers.setTitle("You are travelling with");
-                showtravellers.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                });
-                final AlertDialog dialog=showtravellers.create();
-                for(int i=1;i<=travellers_list.length;i++)
-                {
-                    final int z=i;
-                    final TextView textView=new TextView(getApplicationContext());
-                    textView.setPadding(60,30,0,0);
-                    textView.setTextColor(Color.WHITE);
-                    new GraphRequest(
+        final String travellers_list[]=plan.getTravellers().split(",");
+        final View disp[]=new View[travellers_list.length];
+        for(int i=1;i<=travellers_list.length;i++)
+        {
+            final int z=i;
+            View v=View.inflate(getApplicationContext(),R.layout.display_travellers,null);
+            final TextView textView= v.findViewById(R.id.individual_name);
+            new GraphRequest(
                     AccessToken.getCurrentAccessToken(),
                     "/"+travellers_list[i-1],
                     null,
                     HttpMethod.GET,
                     new GraphRequest.Callback() {
-                    @Override
-                    public void onCompleted(GraphResponse response) {
-                        try{
-                            Log.d("json",response.getJSONObject().getString("name"));
-                            textView.setText(response.getJSONObject().getString("name"));
-                        }
-                        catch (Exception e)
-                        {
-                            Log.d("Json",e.toString());
-                        }
-                    }
-                    }).executeAsync();
-                    textView.setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void onClick(View view) {
-                            dialog.dismiss();
-                            Intent browserIntent;
-                            try {
-                                view.getContext().getPackageManager().getPackageInfo("com.facebook.katana", 0);
-                                browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("fb://facewebmodal/f?href=https://www.facebook.com/"+travellers_list[z-1]));
-                            } catch (Exception e) {
-                                browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/abc[z-1]"));
+                        public void onCompleted(GraphResponse response) {
+                            try{
+                                Log.d("json",response.getJSONObject().getString("name"));
+                                textView.setText(response.getJSONObject().getString("name"));
                             }
-                            view.getContext().startActivity(browserIntent);
+                            catch (Exception e)
+                            {
+                                Log.d("Json",e.toString());
+                            }
                         }
-                    });
-                    textView.setTextSize(18);
-                    linearLayout.addView(textView);
+                    }).executeAsync();
+            textView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent browserIntent;
+                    try {
+                        view.getContext().getPackageManager().getPackageInfo("com.facebook.katana", 0);
+                        browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("fb://facewebmodal/f?href=https://www.facebook.com/"+travellers_list[z-1]));
+                    } catch (Exception e) {
+                        browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/abc[z-1]"));
+                    }
+                    view.getContext().startActivity(browserIntent);
                 }
-                dialog.show();
+            });
+            disp[i-1]=v;
+        }
+        holder.view_travellers.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(holder.view_travellers.getText().equals("View Travellers"))
+                {
+                    for(View list:disp)
+                        holder.disp_traveller.addView(list);
+                    holder.view_travellers.setText("Hide Travellers");
+                }
+                else
+                {
+                    holder.disp_traveller.removeAllViews();
+                    holder.view_travellers.setText("View Travellers");
+                }
             }
         });
+
         if(plan.getSpace().equals("1")||plan.getSpace().equals("2")||plan.getSpace().equals("0"))
             holder.space_left.setTextColor(Color.rgb(255,0,0));
         else
@@ -236,6 +232,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView source,dest,date,time,space_left,view_travellers;
         public ImageView background;
+        public LinearLayout disp_traveller;
 
         public MyViewHolder(View view) {
             super(view);
@@ -246,6 +243,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
             background=view.findViewById(R.id.back_img);
             space_left=view.findViewById(R.id.spaceleft);
             view_travellers=view.findViewById(R.id.viewtravellers);
+            disp_traveller=view.findViewById(R.id.listTraveller);
         }
     }
 }
