@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_search"
             android:icon="@android:drawable/ic_menu_search"
-            android:title="Plans" />
+            android:title="All Plans" />
+        <item
+            android:id="@+id/nav_my_plans"
+            android:icon="@android:drawable/ic_menu_search"
+            android:title="My Plans" />
         <item
             android:id="@+id/nav_req"
             android:icon="@android:drawable/stat_notify_chat"
+            app:actionViewClass="android.widget.TextView"
             android:title="Requests" />
         <item
             android:id="@+id/time_line"
@@ -20,13 +26,5 @@
             android:title="Logout" />
     </group>
 
-    <item android:title="Communicate">
-        <menu>
-            <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="Share" />
-        </menu>
-    </item>
 
 </menu>

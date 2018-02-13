@@ -7,9 +7,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
-import android.text.format.Time;
+import android.text.Layout;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -22,19 +24,25 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.DatePicker;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
 import com.facebook.AccessToken;
+import com.facebook.AccessTokenTracker;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookSdk;
 import com.facebook.Profile;
+import com.facebook.ProfileTracker;
 import com.facebook.login.LoginManager;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import java.util.Calendar;
-import java.util.Date;
 
 public class plannerActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     private Profile fbProfile;
+    private ProfileTracker mProfileTracker;
     Calendar myCalendar;
     private LayoutInflater lay_inf;
 
@@ -51,10 +59,24 @@ public class plannerActivity extends AppCompatActivity
         ft.commit();
 
         lay_inf=this.getLayoutInflater();
-        Log.d("token", AccessToken.getCurrentAccessToken().getToken()+"");
-        fbProfile=Profile.getCurrentProfile();
-        setupProfile();
 
+        if(Profile.getCurrentProfile() == null) {
+            mProfileTracker = new ProfileTracker() {
+                @Override
+                protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                    fbProfile=currentProfile;
+                    Log.v("facebook - profile", currentProfile.getFirstName());
+                    mProfileTracker.stopTracking();
+                    setupProfile();
+                }
+            };
+            // no need to call startTracking() on mProfileTracker
+            // because it is called by its constructor, internally.
+        }
+        else {
+            fbProfile = Profile.getCurrentProfile();
+            setupProfile();
+        }
         DrawerLayout drawer =findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -68,7 +90,24 @@ public class plannerActivity extends AppCompatActivity
         mt.setChecked(true);
         myCalendar = Calendar.getInstance();
 
+        /*new GraphRequest(
+                AccessToken.getCurrentAccessToken(),
+                "/"+fbProfile.getId()+"/groups",
+                null,
+                HttpMethod.GET,
+                new GraphRequest.Callback() {
+                    @Override
+                    public void onCompleted(GraphResponse response) {
+                        // Insert your code here
+                        Log.d("fbGroup info",response+"");
 
+                    }
+                }).executeAsync();*/
+
+        /*TextView reqCount=(TextView) MenuItemCompat.getActionView(navigationView.getMenu().
+                findItem(R.id.nav_req));
+        reqCount.setGravity(Gravity.CENTER_VERTICAL);
+        reqCount.setText("1");*/
     }
 
     public void setupProfile()
@@ -77,8 +116,18 @@ public class plannerActivity extends AppCompatActivity
         View hView =  navigationView.getHeaderView(0);
         TextView uName=hView.findViewById(R.id.userName);
         ImageView iv=hView.findViewById(R.id.userDP);
-        Log.d("ProfileLink",fbProfile.getLinkUri()+"");
-        Picasso.with(getApplicationContext()).load(fbProfile.getProfilePictureUri(100,100)).into(iv);
+        Log.d("ProfileLink",(fbProfile==null) +"");
+        final ProgressBar profileLoad=hView.findViewById(R.id.progressBar2);
+        Picasso.with(getApplicationContext()).load(fbProfile.getProfilePictureUri(100,100)).into(iv, new Callback() {
+            @Override
+            public void onSuccess() {
+                profileLoad.setVisibility(View.GONE);
+            }
+            @Override
+            public void onError() {
+
+            }
+        });
         iv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -130,7 +179,6 @@ public class plannerActivity extends AppCompatActivity
                 @Override
                 public void onClick(View view) {
                     DatePickerDialog dp=new DatePickerDialog(plannerActivity.this,dplistener,myCalendar.get(Calendar.YEAR),myCalendar.get(Calendar.MONTH),myCalendar.get(Calendar.DAY_OF_MONTH));
-                    Log.d("year",myCalendar.get(Calendar.YEAR)+"");
                     dp.create();
                     if(!isFinishing())
                         dp.show();
@@ -171,22 +219,30 @@ public class plannerActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
+        Fragment frag=null;
         if (id == R.id.nav_search) {
+            frag=new Search();
         } else if (id == R.id.nav_req) {
+            frag=new Requests();
+        } else if(id==R.id.time_line){
+            frag=new Timeline();
         } else if (id == R.id.log_out) {
             LoginManager.getInstance().logOut();
             Intent intent=new Intent(plannerActivity.this,LoginActivity.class);
             startActivity(intent);
             finish();
+            return true;
         }
+        else if(id==R.id.nav_my_plans)
+        {
+            frag=new MyPlans();
+        }
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.content_frame, frag);
+        ft.commit();
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
-    }
-    public void createPlan(View view)
-    {
-
     }
 }
