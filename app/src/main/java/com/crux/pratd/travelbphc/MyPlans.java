@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.facebook.Profile;
@@ -49,6 +50,8 @@ public class MyPlans extends Fragment {
         recyclerView.setAdapter(adapter);
         adapter = new PlanAdapter(plan_list);
         final TextView recycler_status=view.findViewById(R.id.status);
+        final ProgressBar progress=view.findViewById(R.id.recycler_progress);
+
         mRef.child("plans").child(Profile.getCurrentProfile().getId()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -66,8 +69,10 @@ public class MyPlans extends Fragment {
                                 plan_list.add(p);
                                 Log.d("Size",plan_list.size()+"");
                                 adapter.notifyDataSetChanged();
-                                if(plan_list.size()!=0)
+                                if(plan_list.size()!=0) {
+                                    progress.setVisibility(View.GONE);
                                     recycler_status.setVisibility(View.INVISIBLE);
+                                }
                             }
                             @Override
                             public void onCancelled(DatabaseError databaseError) {
@@ -78,6 +83,7 @@ public class MyPlans extends Fragment {
                 }
                 else
                 {
+                    progress.setVisibility(View.GONE);
                     recycler_status.setVisibility(View.VISIBLE);
                     recycler_status.setText("You haven't joined or created any plan...");
                 }
