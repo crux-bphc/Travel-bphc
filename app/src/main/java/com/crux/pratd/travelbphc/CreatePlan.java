@@ -52,8 +52,8 @@ public class CreatePlan extends AppCompatActivity {
         final TimePickerDialog.OnTimeSetListener tplistener= new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker timePicker, int i, int i1) {
-                fil_time.setText((i<10?"0"+i:(i>12?i-12:i))+":"+(i1<10?"0"+i1:i1)+(i>12?" PM":" AM"));
-                //fil_time.setText((i<10?"0"+i:i)+""+(i1<10?"0"+i1:i1)+" HOURS");
+                //fil_time.setText((i<10?"0"+i:(i>12?i-12:i))+":"+(i1<10?"0"+i1:i1)+(i>=12?" PM":" AM"));
+                fil_time.setText((i<10?"0"+i:i)+":"+(i1<10?"0"+i1:i1));
             }
         };
         fil_time.setOnClickListener(new View.OnClickListener() {

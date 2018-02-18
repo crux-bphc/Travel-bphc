@@ -33,8 +33,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import static com.facebook.FacebookSdk.getApplicationContext;
@@ -44,7 +46,9 @@ public class Search extends Fragment {
     FirebaseDatabase mDatabase;
     DatabaseReference mRef;
     private PlanAdapter adapter;
+    private int y,m,d,h,s;
     private List<TravelPlan> plan_list = new ArrayList<>();
+    private List<TravelPlan> plan_list_filtered=new ArrayList<>();
     private RecyclerView recyclerView;
     Calendar myCalendar;
     public Search() {
@@ -56,15 +60,16 @@ public class Search extends Fragment {
         super.onCreate(savedInstanceState);
         myCalendar=Calendar.getInstance();
         setHasOptionsMenu(true);
+        y=m=d=h=s=-1;
     }
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         //noinspection SimplifiableIfStatement
         if (id == R.id.filter) {
+            Log.d("Opened Dialog","Y"+y+",M"+m+",D"+d+",H"+h+",S"+s);
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             final View dialogview=getLayoutInflater().inflate(R.layout.apply_filter,null);
             builder.setTitle("Filter");
@@ -75,6 +80,9 @@ public class Search extends Fragment {
                 @Override
                 public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
                     fil_date.setText(i2+"/"+(i1+1)+"/"+i);
+                    y=i;
+                    m=i1;
+                    d=i2;
                 }
             };
             fil_date.setOnClickListener(new View.OnClickListener() {
@@ -88,8 +96,10 @@ public class Search extends Fragment {
             final TimePickerDialog.OnTimeSetListener tplistener= new TimePickerDialog.OnTimeSetListener() {
                 @Override
                 public void onTimeSet(TimePicker timePicker, int i, int i1) {
-                    fil_time.setText((i<10?"0"+i:(i>12?i-12:i))+":"+(i1<10?"0"+i1:i1)+(i>12?" PM":" AM"));
-                    //fil_time.setText((i<10?"0"+i:i)+""+(i1<10?"0"+i1:i1)+" HOURS");
+                    //fil_time.setText((i<10?"0"+i:(i>12?i-12:i))+":"+(i1<10?"0"+i1:i1)+(i>=12?" PM":" AM"));
+                    h=i;
+                    s=i1;
+                    fil_time.setText((i<10?"0"+i:i)+":"+(i1<10?"0"+i1:i1));
                 }
             };
             fil_time.setOnClickListener(new View.OnClickListener() {
@@ -102,10 +112,27 @@ public class Search extends Fragment {
             });
             builder.setPositiveButton("Apply", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
+                    Log.d("Apply Filter","Y"+y+",M"+m+",D"+d+",H"+h+",S"+s);
+                    if(h==-1) {
+                        Toast.makeText(getApplicationContext(), "You haven't set the date", Toast.LENGTH_SHORT).show();
+                        y = m = d = h = s = -1;
+                    }
+                    else if(d==-1)
+                    {
+                        Toast.makeText(getApplicationContext(),"You haven't set the time",Toast.LENGTH_SHORT).show();
+                        y = m = d = h = s = -1;
+                    }
+                    else
+                        applyFilter();
                 }
             });
-            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            builder.setNegativeButton("Clear Filter", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
+                    Log.d("Clear Filter","Y"+y+",M"+m+",D"+d+",H"+h+",S"+s);
+                    if(y!=-1) {
+                        y = m = d = h = s = -1;
+                        applyFilter();
+                    }
                 }
             });
             builder.create().show();
@@ -178,14 +205,38 @@ public class Search extends Fragment {
                     progress.setVisibility(View.GONE);
                     recycler_status.setVisibility(View.INVISIBLE);
                 }
-                adapter = new PlanAdapter(plan_list);
-                recyclerView.setAdapter(adapter);
-                adapter.notifyDataSetChanged();
+                applyFilter();
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
             }
         });
         return view;
+    }
+    public void applyFilter()
+    {
+        plan_list_filtered.clear();
+        if(d!=-1) {
+            Calendar filter=Calendar.getInstance();
+            Calendar plan=Calendar.getInstance();
+            filter.set(y,m,d,h,s);
+            for (TravelPlan p : plan_list) {
+                int y1=Integer.parseInt(p.getDate().substring(p.getDate().lastIndexOf('.')+1));
+                int m1=Integer.parseInt(p.getDate().substring(p.getDate().indexOf('.')+1,p.getDate().lastIndexOf('.')))-1;
+                int d1=Integer.parseInt(p.getDate().substring(0,p.getDate().indexOf('.')));
+                int h1=Integer.parseInt(p.getTime().substring(0,2));
+                int s1=Integer.parseInt(p.getTime().substring(3,5));
+                plan.set(y1,m1,d1,h1,s1);
+                if(Math.abs(filter.getTimeInMillis()-plan.getTimeInMillis())<3600000)
+                    plan_list_filtered.add(p);
+            }
+        }
+        else {
+            plan_list_filtered=new ArrayList<>(plan_list);
+            Log.d("Refreshing Recyler",""+plan_list.size()+","+plan_list_filtered.size());
+        }
+        adapter=new PlanAdapter(plan_list_filtered);
+        recyclerView.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
     }
 }
