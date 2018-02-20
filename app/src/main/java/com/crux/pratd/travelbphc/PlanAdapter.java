@@ -80,7 +80,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                         view.getContext().getPackageManager().getPackageInfo("com.facebook.katana", 0);
                         browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("fb://facewebmodal/f?href=https://www.facebook.com/"+travellers_list[z-1]));
                     } catch (Exception e) {
-                        browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/abc[z-1]"));
+                        browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/"+travellers_list[z-1]));
                     }
                     view.getContext().startActivity(browserIntent);
                 }

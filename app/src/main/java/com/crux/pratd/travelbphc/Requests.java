@@ -59,6 +59,7 @@ public class Requests extends Fragment {
                     for(DataSnapshot ds:dataSnapshot.getChildren())
                     {
                         final String key=ds.getKey();
+                        Log.d("key in requests:",key);
                         Log.d("request",ds.getValue()+"");
                         final View child=inflater.inflate(R.layout.individual_req, linearLayout,false);
                         final TextView tv=child.findViewById(R.id.req_message);
@@ -85,7 +86,6 @@ public class Requests extends Fragment {
                             @Override
                             public void onClick(View view) {
                                 mRef.child("requests").child(Profile.getCurrentProfile().getId()).child(key).setValue(null);
-                                mRef.child("plans").child(key).setValue(Profile.getCurrentProfile().getId());
                                 mRef.child("plans").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
