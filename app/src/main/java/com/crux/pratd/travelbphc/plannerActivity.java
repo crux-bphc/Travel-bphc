@@ -2,6 +2,7 @@ package com.crux.pratd.travelbphc;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -116,7 +117,6 @@ public class plannerActivity extends AppCompatActivity
         View hView =  navigationView.getHeaderView(0);
         TextView uName=hView.findViewById(R.id.userName);
         ImageView iv=hView.findViewById(R.id.userDP);
-        Log.d("ProfileLink",(fbProfile==null) +"");
         final ProgressBar profileLoad=hView.findViewById(R.id.progressBar2);
         Picasso.with(getApplicationContext()).load(fbProfile.getProfilePictureUri(100,100)).into(iv, new Callback() {
             @Override
@@ -131,8 +131,14 @@ public class plannerActivity extends AppCompatActivity
         iv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, fbProfile.getLinkUri());
-                startActivity(browserIntent);
+                Intent browserIntent;
+                try {
+                    view.getContext().getPackageManager().getPackageInfo("com.facebook.katana", 0);
+                    browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("fb://facewebmodal/f?href=https://www.facebook.com/"+fbProfile.getId()));
+                } catch (Exception e) {
+                    browserIntent= new Intent(Intent.ACTION_VIEW, fbProfile.getLinkUri());
+                }
+                view.getContext().startActivity(browserIntent);
             }
         });
         uName.setText(fbProfile.getName());
@@ -165,9 +171,7 @@ public class plannerActivity extends AppCompatActivity
             startActivity(intent);
             finish();
             return true;
-        }
-        else if(id==R.id.nav_my_plans)
-        {
+        } else if(id==R.id.nav_my_plans) {
             frag=new MyPlans();
         }
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
