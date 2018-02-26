@@ -20,8 +20,11 @@ import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.HttpMethod;
 import com.facebook.Profile;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
 
@@ -127,9 +130,18 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                     builder.setPositiveButton("Leave", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
+                            final String pID=Profile.getCurrentProfile().getId();
                             plan.setSpace(Integer.toString(Integer.parseInt(plan.getSpace())+1));
-                            plan.setTravellers(removeId(Profile.getCurrentProfile().getId(),plan.getTravellers()));
+                            plan.setTravellers(removeId(pID,plan.getTravellers()));
                             mRef.child(plan.getCreator()).setValue(plan);
+                            mRef.child("plans").child(pID).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    mRef.child("plans").child(pID).setValue(removeId(plan.getCreator(),dataSnapshot.getValue().toString()));
+                                }
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {}
+                            });
                         }
                     });
                 }
@@ -181,53 +193,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        final View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.travel_card, parent, false);
-        /*itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d("clicked",view.findViewById(R.id.from_text).getContentDescription()+"");
-                final String creatorId=view.findViewById(R.id.from_text).getContentDescription()+"";
-                FirebaseDatabase.getInstance().getReference().child(creatorId).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-                final AlertDialog.Builder builder=new AlertDialog.Builder(view.getContext());
-                if(creatorId.equals(Profile.getCurrentProfile().getId()))
-                    builder.setMessage("You cannot join your own plan!");
-                else if(((TextView)(view.findViewById(R.id.spaceleft))).getText().toString().equals("0"))
-                    builder.setMessage("No Space Left!");
-                else if()
-                {
-
-                }
-                else
-                {
-                    builder.setMessage("Do you wish to join the selected Plan?");
-                    builder.setPositiveButton("Join", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            FirebaseDatabase.getInstance().getReference().child("requests").child(creatorId).child(Profile.getCurrentProfile().getId()).setValue("I would like to join your plan");
-                        }
-                    });
-                }
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-
-                    }
-                });
-                builder.create().show();
-            }
-        });*/
-        return new MyViewHolder(itemView);
+        return new MyViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.travel_card, parent, false));
     }
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView source,dest,date,time,space_left,view_travellers;

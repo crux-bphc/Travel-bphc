@@ -59,16 +59,13 @@ public class MyPlans extends Fragment {
                 if(dataSnapshot.getValue()!=null)
                 {
                     final String plans_id[]=dataSnapshot.getValue().toString().split(",");
-                    recyclerView.setAdapter(adapter);
                     for(final String id:plans_id)
                     {
-                        mRef.child(id).addValueEventListener(new ValueEventListener() {
+                        mRef.child(id).addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 TravelPlan p=dataSnapshot.getValue(TravelPlan.class);
                                 plan_list.add(p);
-                                Log.d("Size",plan_list.size()+"");
-                                adapter.notifyDataSetChanged();
                                 if(plan_list.size()!=0) {
                                     progress.setVisibility(View.GONE);
                                     recycler_status.setVisibility(View.INVISIBLE);
@@ -80,6 +77,9 @@ public class MyPlans extends Fragment {
                             }
                         });
                     }
+                    adapter=new PlanAdapter(plan_list);
+                    recyclerView.setAdapter(adapter);
+                    adapter.notifyDataSetChanged();
                 }
                 else
                 {
