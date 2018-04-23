@@ -3,6 +3,7 @@
     android:id="@+id/disp_req"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#EFEFEF"
     android:orientation="vertical"
     android:paddingTop="10dp"
     tools:context="com.crux.pratd.travelbphc.Requests">

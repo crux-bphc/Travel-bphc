@@ -5,7 +5,6 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,12 +35,13 @@ public class MyPlans extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view= inflater.inflate(R.layout.fragment_search,container,false);
+        View view= inflater.inflate(R.layout.fragment_myplans,container,false);
         mRef= FirebaseDatabase.getInstance().getReference();
+
+        view.findViewById(R.id.fab).setVisibility(View.GONE);
 
         recyclerView=view.findViewById(R.id.rec_view);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());

@@ -4,11 +4,9 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -33,14 +31,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-
-import static com.facebook.FacebookSdk.getApplicationContext;
-
 
 public class Search extends Fragment {
     FirebaseDatabase mDatabase;
@@ -51,26 +44,89 @@ public class Search extends Fragment {
     private List<TravelPlan> plan_list_filtered=new ArrayList<>();
     private RecyclerView recyclerView;
     Calendar myCalendar;
-    public Search() {
-        // Required empty public constructor
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         myCalendar=Calendar.getInstance();
         setHasOptionsMenu(true);
+    }
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view=inflater.inflate(R.layout.fragment_search,container,false);
+        mDatabase= FirebaseDatabase.getInstance();
+        mRef=mDatabase.getReference();
+
+        //TODO remove the next two lines after creating new activity layout
+        FloatingActionButton fab = view.findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mRef.child(Profile.getCurrentProfile().getId()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if(dataSnapshot.getValue()!=null)
+                            Toast.makeText(getActivity(),"You can create only 1 plan at a time!",Toast.LENGTH_LONG).show();
+                        else {
+                            Intent intent = new Intent(getContext(), CreatePlan.class);
+                            startActivity(intent);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {}
+                });
+            }
+        });
         y=m=d=h=s=-1;
+        recyclerView=view.findViewById(R.id.rec_view);
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.setAdapter(adapter);
+        final TextView recycler_status=view.findViewById(R.id.status);
+        final ProgressBar progress=view.findViewById(R.id.recycler_progress);
+        mRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                plan_list.clear();
+                for(DataSnapshot ds:dataSnapshot.getChildren())
+                {
+                    Log.d("key=",ds.getKey());
+                    if(ds.getKey().equals("requests")||ds.getKey().equals("plans"))
+                        continue;
+                    plan_list.add(ds.getValue(TravelPlan.class));
+                }
+                if(plan_list.size()==0)
+                {
+                    recycler_status.setVisibility(View.VISIBLE);
+                    progress.setVisibility(View.GONE);
+                    recycler_status.setText("No plans active currently");
+                }
+                else
+                {
+                    progress.setVisibility(View.GONE);
+                    recycler_status.setVisibility(View.INVISIBLE);
+                }
+                applyFilter();
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+        return view;
+    }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.planner, menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        //noinspection SimplifiableIfStatement
         if (id == R.id.filter) {
             Log.d("Opened Dialog","Y"+y+",M"+m+",D"+d+",H"+h+",S"+s);
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
             final View dialogview=getLayoutInflater().inflate(R.layout.apply_filter,null);
             builder.setTitle("Filter");
             builder.setView(dialogview);
@@ -114,12 +170,12 @@ public class Search extends Fragment {
                 public void onClick(DialogInterface dialog, int id) {
                     Log.d("Apply Filter","Y"+y+",M"+m+",D"+d+",H"+h+",S"+s);
                     if(h==-1) {
-                        Toast.makeText(getApplicationContext(), "You haven't set the date", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "You haven't set the date", Toast.LENGTH_SHORT).show();
                         y = m = d = h = s = -1;
                     }
                     else if(d==-1)
                     {
-                        Toast.makeText(getApplicationContext(),"You haven't set the time",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(),"You haven't set the time",Toast.LENGTH_SHORT).show();
                         y = m = d = h = s = -1;
                     }
                     else
@@ -139,79 +195,6 @@ public class Search extends Fragment {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.planner, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view=inflater.inflate(R.layout.fragment_search,container,false);
-
-        mDatabase= FirebaseDatabase.getInstance();
-        mRef=mDatabase.getReference();
-
-        FloatingActionButton fab = view.findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mRef.child(Profile.getCurrentProfile().getId()).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if(dataSnapshot.getValue()!=null)
-                            Toast.makeText(getActivity(),"You can create only 1 plan at a time!",Toast.LENGTH_LONG).show();
-                        else {
-                            Intent intent = new Intent(getApplicationContext(), CreatePlan.class);
-                            startActivity(intent);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-            }
-        });
-        recyclerView=view.findViewById(R.id.rec_view);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
-        recyclerView.setLayoutManager(mLayoutManager);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.setAdapter(adapter);
-        final TextView recycler_status=view.findViewById(R.id.status);
-        final ProgressBar progress=view.findViewById(R.id.recycler_progress);
-        mRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                plan_list.clear();
-                for(DataSnapshot ds:dataSnapshot.getChildren())
-                {
-                    Log.d("key=",ds.getKey());
-                    if(ds.getKey().equals("requests")||ds.getKey().equals("plans"))
-                        continue;
-                    plan_list.add(ds.getValue(TravelPlan.class));
-                }
-                if(plan_list.size()==0)
-                {
-                    recycler_status.setVisibility(View.VISIBLE);
-                    progress.setVisibility(View.GONE);
-                    recycler_status.setText("No plans active currently");
-                }
-                else
-                {
-                    progress.setVisibility(View.GONE);
-                    recycler_status.setVisibility(View.INVISIBLE);
-                }
-                applyFilter();
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });
-        return view;
     }
     public void applyFilter()
     {

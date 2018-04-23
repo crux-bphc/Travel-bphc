@@ -1,19 +1,11 @@
 package com.crux.pratd.travelbphc;
 
-import android.app.DatePickerDialog;
-import android.app.TimePickerDialog;
 import android.net.Uri;
 import android.support.v4.app.Fragment;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.AlertDialog;
-import android.text.Layout;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -23,19 +15,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.TimePicker;
 
-import com.facebook.AccessToken;
-import com.facebook.AccessTokenTracker;
-import com.facebook.CallbackManager;
-import com.facebook.FacebookSdk;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
 import com.facebook.login.LoginManager;
+import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import java.util.Calendar;
@@ -45,7 +32,6 @@ public class plannerActivity extends AppCompatActivity
     private Profile fbProfile;
     private ProfileTracker mProfileTracker;
     Calendar myCalendar;
-    private LayoutInflater lay_inf;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,8 +44,6 @@ public class plannerActivity extends AppCompatActivity
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.content_frame, fragment);
         ft.commit();
-
-        lay_inf=this.getLayoutInflater();
 
         if(Profile.getCurrentProfile() == null) {
             mProfileTracker = new ProfileTracker() {
@@ -90,6 +74,7 @@ public class plannerActivity extends AppCompatActivity
         MenuItem mt=contents.getItem(0);
         mt.setChecked(true);
         myCalendar = Calendar.getInstance();
+
 
         /*new GraphRequest(
                 AccessToken.getCurrentAccessToken(),
@@ -158,21 +143,17 @@ public class plannerActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-        Fragment frag=null;
-        if (id == R.id.nav_search) {
-            frag=new Search();
-        } else if (id == R.id.nav_req) {
-            frag=new Requests();
-        } else if(id==R.id.time_line){
-            frag=new Timeline();
-        } else if (id == R.id.log_out) {
+        Fragment frag = null;
+        if(id==R.id.nav_search)    frag=new Search();
+        else if (id == R.id.nav_my_plans)    frag = new MyPlans();
+        else if (id == R.id.nav_req)    frag = new Requests();
+        else if(id==R.id.time_line)    frag=new Timeline();
+        else if (id == R.id.log_out) {
             LoginManager.getInstance().logOut();
             Intent intent=new Intent(plannerActivity.this,LoginActivity.class);
             startActivity(intent);
             finish();
             return true;
-        } else if(id==R.id.nav_my_plans) {
-            frag=new MyPlans();
         }
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.content_frame, frag);

@@ -1,0 +1,50 @@
+{
+  "project_info": {
+    "project_number": "288819642768",
+    "firebase_url": "https://travelbphc.firebaseio.com",
+    "project_id": "travelbphc",
+    "storage_bucket": "travelbphc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:288819642768:android:28bed525462ef709",
+        "android_client_info": {
+          "package_name": "com.crux.pratd.travelbphc"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "288819642768-0j10vnlot88amd43t587dhnc65tep66u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.crux.pratd.travelbphc",
+            "certificate_hash": "4df57033789ebcbcd5ac357ecda95445b7d70a33"
+          }
+        },
+        {
+          "client_id": "288819642768-m6r1dvm2h1burp583co5gpcse307cbq6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsmv0ybLkZ0j_SVZGrgsEdJR7puXV-V3o"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

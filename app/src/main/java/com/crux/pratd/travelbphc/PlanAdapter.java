@@ -66,7 +66,6 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                         @Override
                         public void onCompleted(GraphResponse response) {
                             try{
-                                Log.d("json",response.getJSONObject().getString("name"));
                                 textView.setText(response.getJSONObject().getString("name"));
                             }
                             catch (Exception e)
@@ -107,14 +106,18 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
             }
         });
 
-        if(plan.getSpace().equals("1")||plan.getSpace().equals("2")||plan.getSpace().equals("0"))
+        if(plan.getSpace().equals("1")||plan.getSpace().equals("2")||plan.getSpace().equals("0")){
             holder.space_left.setTextColor(Color.rgb(255,0,0));
-        else
-            holder.space_left.setTextColor(Color.rgb(48,252,3));
+            holder.indicator.setBackgroundColor(Color.rgb(255,0,0));
+        }
+        else {
+            holder.space_left.setTextColor(Color.rgb(48, 252, 3));
+            holder.indicator.setBackgroundColor(Color.rgb(48, 252, 3));
+        }
         if(plan.getSource().equalsIgnoreCase("station")||plan.getDest().equalsIgnoreCase("station"))
-            holder.background.setBackgroundResource(R.drawable.train);
+            holder.background.setImageResource(R.drawable.train);
         else
-            holder.background.setBackgroundResource(R.drawable.flight2);
+            holder.background.setImageResource(R.drawable.flight);
         holder.background.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -193,12 +196,13 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new MyViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.travel_card, parent, false));
+        return new MyViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.travel_card_new, parent, false));
     }
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView source,dest,date,time,space_left,view_travellers;
         public ImageView background;
         public LinearLayout disp_traveller;
+        public View indicator;
 
         public MyViewHolder(View view) {
             super(view);
@@ -210,6 +214,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
             space_left=view.findViewById(R.id.spaceleft);
             view_travellers=view.findViewById(R.id.viewtravellers);
             disp_traveller=view.findViewById(R.id.listTraveller);
+            indicator=view.findViewById(R.id.indicator);
         }
     }
 }
