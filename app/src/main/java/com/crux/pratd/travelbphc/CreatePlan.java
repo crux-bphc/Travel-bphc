@@ -3,8 +3,10 @@ package com.crux.pratd.travelbphc;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
@@ -15,13 +17,20 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.facebook.Profile;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+
 public class CreatePlan extends AppCompatActivity {
 
     TextView fil_date,fil_time;
@@ -94,27 +103,31 @@ public class CreatePlan extends AppCompatActivity {
             Toast.makeText(getApplicationContext(),"You have not chosen any time",Toast.LENGTH_SHORT).show();
             return;
         }
-        final DatabaseReference dataRef=FirebaseDatabase.getInstance().getReference();
-        final String name=Profile.getCurrentProfile().getId();
-        TravelPlan create=new TravelPlan(source.getText().toString(),destination.getText().toString(),fil_date.getText().toString(),fil_time.getText().toString(),name,spinner.getSelectedItem().toString(),name);
-        dataRef.child(Profile.getCurrentProfile().getId()).setValue(create);
-        dataRef.child("plans").child(name).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                String s= Profile.getCurrentProfile().getId();
-                if(dataSnapshot.getValue()!=null)
-                    s=dataSnapshot.getValue().toString()+","+s;
-                dataRef.child("plans").child(name).setValue(s);
-            }
+        final String id=Profile.getCurrentProfile().getId();
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+        Map<String,Object> abc=new HashMap<>();
+        abc.put(id,true);
 
-            }
-        });
-        Toast.makeText(getApplicationContext(),"Plan created successfully!!",Toast.LENGTH_SHORT).show();
-        Intent intent=new Intent(CreatePlan.this,plannerActivity.class);
-        startActivity(intent);
-        finish();
+        TravelPlan create=new TravelPlan(source.getText().toString(),destination.getText().toString(),fil_date.getText().toString(),fil_time.getText().toString(),id,spinner.getSelectedItem().toString(),abc);
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("plans").document(id)
+                .set(create)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Toast.makeText(getApplicationContext(),"Plan created successfully!",Toast.LENGTH_SHORT).show();
+                        Intent intent=new Intent(CreatePlan.this,plannerActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w("DataUpload", "Error adding document", e);
+                        Toast.makeText(getApplicationContext(),"Unable to create plan, try later",Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

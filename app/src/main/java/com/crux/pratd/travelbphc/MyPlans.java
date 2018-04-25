@@ -1,10 +1,12 @@
 package com.crux.pratd.travelbphc;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,11 +14,18 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.facebook.Profile;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import org.w3c.dom.Document;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,48 +61,30 @@ public class MyPlans extends Fragment {
         final TextView recycler_status=view.findViewById(R.id.status);
         final ProgressBar progress=view.findViewById(R.id.recycler_progress);
 
-        mRef.child("plans").child(Profile.getCurrentProfile().getId()).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                plan_list.clear();
-                if(dataSnapshot.getValue()!=null)
-                {
-                    final String plans_id[]=dataSnapshot.getValue().toString().split(",");
-                    for(final String id:plans_id)
-                    {
-                        mRef.child(id).addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                TravelPlan p=dataSnapshot.getValue(TravelPlan.class);
+        FirebaseFirestore.getInstance().collection("plans")
+                .whereEqualTo("travellers."+Profile.getCurrentProfile().getId(), true)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if(task.getResult().getDocuments().size()!=0) {
+                            for (DocumentSnapshot doc : task.getResult().getDocuments()) {
+                                TravelPlan p=doc.toObject(TravelPlan.class);
                                 plan_list.add(p);
-                                if(plan_list.size()!=0) {
-                                    progress.setVisibility(View.GONE);
-                                    recycler_status.setVisibility(View.INVISIBLE);
-                                }
                             }
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
+                            progress.setVisibility(View.GONE);
+                            recycler_status.setVisibility(View.INVISIBLE);
+                            adapter=new PlanAdapter(plan_list);
+                            recyclerView.setAdapter(adapter);
+                            adapter.notifyDataSetChanged();
+                        }
+                        else {
+                            progress.setVisibility(View.GONE);
+                            recycler_status.setVisibility(View.VISIBLE);
+                            recycler_status.setText("You haven't joined or created any plan...");
+                        }
                     }
-                    adapter=new PlanAdapter(plan_list);
-                    recyclerView.setAdapter(adapter);
-                    adapter.notifyDataSetChanged();
-                }
-                else
-                {
-                    progress.setVisibility(View.GONE);
-                    recycler_status.setVisibility(View.VISIBLE);
-                    recycler_status.setText("You haven't joined or created any plan...");
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+                });
         return view;
     }
 

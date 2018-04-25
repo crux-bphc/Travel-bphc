@@ -30,6 +30,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -63,7 +64,9 @@ public class Search extends Fragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mRef.child(Profile.getCurrentProfile().getId()).addListenerForSingleValueEvent(new ValueEventListener() {
+                Intent intent = new Intent(getContext(), CreatePlan.class);
+                startActivity(intent);
+                /*mRef.child(Profile.getCurrentProfile().getId()).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if(dataSnapshot.getValue()!=null)
@@ -76,7 +79,7 @@ public class Search extends Fragment {
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {}
-                });
+                });*/
             }
         });
         y=m=d=h=s=-1;
@@ -87,7 +90,7 @@ public class Search extends Fragment {
         recyclerView.setAdapter(adapter);
         final TextView recycler_status=view.findViewById(R.id.status);
         final ProgressBar progress=view.findViewById(R.id.recycler_progress);
-        mRef.addValueEventListener(new ValueEventListener() {
+        /*mRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 plan_list.clear();
@@ -114,7 +117,8 @@ public class Search extends Fragment {
             @Override
             public void onCancelled(DatabaseError databaseError) {
             }
-        });
+        });*/
+        FirebaseFirestore.getInstance().collection("plans").document(Profile.getCurrentProfile().getId()).update("travellers.abcd",true);
         return view;
     }
     @Override

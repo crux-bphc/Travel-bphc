@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,13 +21,19 @@ import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.HttpMethod;
 import com.facebook.Profile;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.facebook.FacebookSdk.getApplicationContext;
 
@@ -50,16 +57,17 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
         holder.date.setText(plan.getDate());
         holder.time.setText(plan.getTime());
         holder.space_left.setText(plan.getSpace());
-        final String travellers_list[]=plan.getTravellers().split(",");
-        final View disp[]=new View[travellers_list.length];
-        for(int i=1;i<=travellers_list.length;i++)
+
+        Set<String> listTravellers=plan.getTravellers().keySet();
+        final View disp[]=new View[listTravellers.size()];
+        int i=0;
+        for(final String id:listTravellers)
         {
-            final int z=i;
             View v=View.inflate(getApplicationContext(),R.layout.display_travellers,null);
             final TextView textView= v.findViewById(R.id.individual_name);
             new GraphRequest(
                     AccessToken.getCurrentAccessToken(),
-                    "/"+travellers_list[i-1],
+                    "/"+id,
                     null,
                     HttpMethod.GET,
                     new GraphRequest.Callback() {
@@ -80,14 +88,14 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                     Intent browserIntent;
                     try {
                         view.getContext().getPackageManager().getPackageInfo("com.facebook.katana", 0);
-                        browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("fb://facewebmodal/f?href=https://www.facebook.com/"+travellers_list[z-1]));
+                        browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("fb://facewebmodal/f?href=https://www.facebook.com/"+id));
                     } catch (Exception e) {
-                        browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/"+travellers_list[z-1]));
+                        browserIntent= new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/"+id));
                     }
                     view.getContext().startActivity(browserIntent);
                 }
             });
-            disp[i-1]=v;
+            disp[i++]=v;
         }
         holder.view_travellers.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -127,7 +135,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                     builder.setMessage("You cannot join your own plan!");
                 else if(plan.getSpace().equals("0"))
                     builder.setMessage("No Space Left!");
-                else if(checkAlreadyJoined(Profile.getCurrentProfile().getId(),plan.getTravellers()))
+                else if ( plan.getTravellers().containsKey(Profile.getCurrentProfile().getId()))
                 {
                     builder.setMessage("You are already a part of this plan...\nDo you wish to leave?");
                     builder.setPositiveButton("Leave", new DialogInterface.OnClickListener() {
@@ -135,16 +143,16 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                         public void onClick(DialogInterface dialogInterface, int i) {
                             final String pID=Profile.getCurrentProfile().getId();
                             plan.setSpace(Integer.toString(Integer.parseInt(plan.getSpace())+1));
-                            plan.setTravellers(removeId(pID,plan.getTravellers()));
-                            mRef.child(plan.getCreator()).setValue(plan);
-                            mRef.child("plans").child(pID).addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    mRef.child("plans").child(pID).setValue(removeId(plan.getCreator(),dataSnapshot.getValue().toString()));
-                                }
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {}
-                            });
+                            plan.getTravellers().remove(pID);
+                            //mRef.child(plan.getCreator()).setValue(plan);
+                            FirebaseFirestore.getInstance().collection("plans").document(plan.getCreator())
+                                    .set(plan)
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(getApplicationContext(),"Try again later",Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
                         }
                     });
                 }
@@ -168,25 +176,6 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                 builder.create().show();
             }
         });
-    }
-    public boolean checkAlreadyJoined(String id, String others)
-    {
-        String list[]=others.split(",");
-        for(int i=0;i<list.length;i++)
-            if(list[i].equals(id))
-                return true;
-        return false;
-    }
-    public String removeId(String id, String original)
-    {
-
-        String edited="";
-        String list[]=original.split(",");
-        for(int i=0;i<list.length;i++)
-            if(!list[i].equals(id))
-                edited=edited+list[i]+",";
-        edited=edited.substring(0,edited.length()-1);
-        return edited;
     }
 
     @Override

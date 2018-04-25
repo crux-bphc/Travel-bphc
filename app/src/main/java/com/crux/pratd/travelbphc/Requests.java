@@ -21,6 +21,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class Requests extends Fragment {
     DatabaseReference mRef;
@@ -82,7 +83,8 @@ public class Requests extends Fragment {
                             @Override
                             public void onClick(View view) {
                                 mRef.child("requests").child(Profile.getCurrentProfile().getId()).child(key).setValue(null);
-                                mRef.child("plans").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                                FirebaseFirestore.getInstance().collection("plans").document(Profile.getCurrentProfile().getId()).update("travellers."+key,true);
+                                /*mRef.child("plans").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
                                         String s= Profile.getCurrentProfile().getId();
@@ -95,9 +97,8 @@ public class Requests extends Fragment {
                                     public void onCancelled(DatabaseError databaseError) {
 
                                     }
-                                });
-
-                                mRef.child(Profile.getCurrentProfile().getId()).child("travellers").addListenerForSingleValueEvent(new ValueEventListener() {
+                                });*/
+                                /*mRef.child(Profile.getCurrentProfile().getId()).child("travellers").addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
                                         if(dataSnapshot==null)
@@ -110,7 +111,7 @@ public class Requests extends Fragment {
                                     public void onCancelled(DatabaseError databaseError) {
 
                                     }
-                                });
+                                });*/
                                 mRef.child(Profile.getCurrentProfile().getId()).child("space").addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {

@@ -1,13 +1,17 @@
 package com.crux.pratd.travelbphc;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 /**
  * Created by pratd on 20-01-2018.
  */
 
 public class TravelPlan {
-    private String source,dest,date,time,creator,space,travellers;
+    private String source,dest,date,time,creator,space;
+    Map<String,Object> travellers;
     public TravelPlan(){}
-    public TravelPlan(String source,String dest,String date,String time,String creator,String space,String travellers){
+    public TravelPlan(String source,String dest,String date,String time,String creator,String space,Map<String,Object> travellers){
         this.source=source;
         this.dest=dest;
         this.date=date;
@@ -28,6 +32,6 @@ public class TravelPlan {
     public void setCreator(String creator) {this.creator = creator;}
     public String getSpace() {return space;}
     public void setSpace(String space) {this.space = space;}
-    public String getTravellers() {return travellers;}
-    public void setTravellers(String travellers) {this.travellers = travellers;}
+    public Map<String,Object> getTravellers() {return travellers;}
+    public void setTravellers(Map<String,Object> travellers) {this.travellers = travellers;}
 }
