@@ -1,17 +1,15 @@
 package com.crux.pratd.travelbphc;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
@@ -20,14 +18,19 @@ import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
-import com.facebook.FacebookSdk;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A login screen that offers login via email/password.
@@ -46,6 +49,30 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final SharedPreferences preferences=getSharedPreferences("UserData",Context.MODE_PRIVATE);
+        if(!preferences.getBoolean("token",false)) {
+            String token = FirebaseInstanceId.getInstance().getToken();
+            if (token != null) {
+                Map<String, String> map = new HashMap<>();
+                map.put("token", token);
+                FirebaseFirestore.getInstance().collection("user").document(Profile.getCurrentProfile().getId()).set(map)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Log.d("Token Service", "Updated Successfully");
+                                SharedPreferences.Editor editor = preferences.edit();
+                                editor.putBoolean("token", true);
+                                editor.apply();
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.d("Token Service", "Updated Failed");
+                            }
+                        });
+            }
+        }
         userToken=AccessToken.getCurrentAccessToken();
         if( userToken != null)
         {
@@ -112,5 +139,16 @@ public class LoginActivity extends AppCompatActivity {
         callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
     }
+//    public boolean isGooglePlayServicesAvailable(Activity activity) {
+//        GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
+//        int status = googleApiAvailability.isGooglePlayServicesAvailable(activity);
+//        if(status != ConnectionResult.SUCCESS) {
+//            if(googleApiAvailability.isUserResolvableError(status)) {
+//                googleApiAvailability.getErrorDialog(activity, status, 2404).show();
+//            }
+//            return false;
+//        }
+//        return true;
+//    }
 }
 

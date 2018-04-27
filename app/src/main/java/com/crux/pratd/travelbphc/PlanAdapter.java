@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,19 +20,16 @@ import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.HttpMethod;
 import com.facebook.Profile;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.gson.JsonObject;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static com.facebook.FacebookSdk.getApplicationContext;
 
@@ -63,7 +59,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
         int i=0;
         for(final String id:listTravellers)
         {
-            View v=View.inflate(getApplicationContext(),R.layout.display_travellers,null);
+            View v=View.inflate(getApplicationContext(),R.layout.display2,null);
             final TextView textView= v.findViewById(R.id.individual_name);
             new GraphRequest(
                     AccessToken.getCurrentAccessToken(),
@@ -76,10 +72,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                             try{
                                 textView.setText(response.getJSONObject().getString("name"));
                             }
-                            catch (Exception e)
-                            {
-                                Log.d("Json",e.toString());
-                            }
+                            catch (Exception e) {}
                         }
                     }).executeAsync();
             textView.setOnClickListener(new View.OnClickListener() {
@@ -97,20 +90,19 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
             });
             disp[i++]=v;
         }
+        final LinearLayout container=new LinearLayout(holder.view_travellers.getContext());
+        container.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT));
+        container.setOrientation(LinearLayout.VERTICAL);
+        for(View list:disp) {
+            container.addView(list);
+        }
+        AlertDialog.Builder builder=new AlertDialog.Builder(holder.view_travellers.getContext());
+        builder.setView(container);
+        final AlertDialog dialog=builder.create();
         holder.view_travellers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(holder.view_travellers.getText().equals("View Travellers"))
-                {
-                    for(View list:disp)
-                        holder.disp_traveller.addView(list);
-                    holder.view_travellers.setText("Hide Travellers");
-                }
-                else
-                {
-                    holder.disp_traveller.removeAllViews();
-                    holder.view_travellers.setText("View Travellers");
-                }
+                dialog.show();
             }
         });
 
@@ -126,7 +118,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
             holder.background.setImageResource(R.drawable.train);
         else
             holder.background.setImageResource(R.drawable.flight);
-        holder.background.setOnClickListener(new View.OnClickListener() {
+        holder.card.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 final String creatorId=plan.getCreator();
@@ -141,18 +133,21 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                     builder.setPositiveButton("Leave", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            final String pID=Profile.getCurrentProfile().getId();
-                            plan.setSpace(Integer.toString(Integer.parseInt(plan.getSpace())+1));
-                            plan.getTravellers().remove(pID);
-                            //mRef.child(plan.getCreator()).setValue(plan);
-                            FirebaseFirestore.getInstance().collection("plans").document(plan.getCreator())
-                                    .set(plan)
-                                    .addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            Toast.makeText(getApplicationContext(),"Try again later",Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
+                            JsonObject json=new JsonObject();
+                            json.addProperty("sender",Profile.getCurrentProfile().getId());
+                            json.addProperty("plan_id",plan.getCreator());
+                            ApiInterface  apiInterface=ApiClient.getClient().create(ApiInterface.class);
+                            Call<JsonObject> call=apiInterface.leavePlan(json);
+                            call.enqueue(new Callback<JsonObject>() {
+                                @Override
+                                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                                    Log.d("Response",response.toString());
+                                }
+                                @Override
+                                public void onFailure(Call<JsonObject> call, Throwable t) {
+                                    Log.d("Response","Error");
+                                }
+                            });
                         }
                     });
                 }
@@ -163,6 +158,21 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             mRef.child("requests").child(creatorId).child(Profile.getCurrentProfile().getId()).setValue("I would like to join your plan");
+                            JsonObject json=new JsonObject();
+                            json.addProperty("sender",Profile.getCurrentProfile().getId());
+                            json.addProperty("receiver",creatorId);
+                            ApiInterface  apiInterface=ApiClient.getClient().create(ApiInterface.class);
+                            Call<JsonObject> call=apiInterface.sendReq(json);
+                            call.enqueue(new Callback<JsonObject>() {
+                                @Override
+                                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                                    Log.d("Response",response.toString());
+                                }
+                                @Override
+                                public void onFailure(Call<JsonObject> call, Throwable t) {
+                                    Log.d("Response","Unable to process your request");
+                                }
+                            });
                             Toast.makeText(getApplicationContext(),"A request has been sent to the creator, you will be notified when your request is accepted.",Toast.LENGTH_LONG).show();
                         }
                     });
@@ -190,7 +200,7 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView source,dest,date,time,space_left,view_travellers;
         public ImageView background;
-        public LinearLayout disp_traveller;
+        public View card;
         public View indicator;
 
         public MyViewHolder(View view) {
@@ -202,8 +212,8 @@ public class PlanAdapter extends RecyclerView.Adapter<PlanAdapter.MyViewHolder> 
             background=view.findViewById(R.id.back_img);
             space_left=view.findViewById(R.id.spaceleft);
             view_travellers=view.findViewById(R.id.viewtravellers);
-            disp_traveller=view.findViewById(R.id.listTraveller);
             indicator=view.findViewById(R.id.indicator);
+            card=view.findViewById(R.id.cardView);
         }
     }
 }

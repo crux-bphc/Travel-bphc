@@ -5,6 +5,7 @@ import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
@@ -25,12 +26,16 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.facebook.Profile;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -90,35 +95,29 @@ public class Search extends Fragment {
         recyclerView.setAdapter(adapter);
         final TextView recycler_status=view.findViewById(R.id.status);
         final ProgressBar progress=view.findViewById(R.id.recycler_progress);
-        /*mRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                plan_list.clear();
-                for(DataSnapshot ds:dataSnapshot.getChildren())
-                {
-                    Log.d("key=",ds.getKey());
-                    if(ds.getKey().equals("requests")||ds.getKey().equals("plans"))
-                        continue;
-                    plan_list.add(ds.getValue(TravelPlan.class));
-                }
-                if(plan_list.size()==0)
-                {
-                    recycler_status.setVisibility(View.VISIBLE);
-                    progress.setVisibility(View.GONE);
-                    recycler_status.setText("No plans active currently");
-                }
-                else
-                {
-                    progress.setVisibility(View.GONE);
-                    recycler_status.setVisibility(View.INVISIBLE);
-                }
-                applyFilter();
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });*/
-        FirebaseFirestore.getInstance().collection("plans").document(Profile.getCurrentProfile().getId()).update("travellers.abcd",true);
+        FirebaseFirestore.getInstance().collection("plans")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        plan_list.clear();
+                        if(task.getResult().getDocuments().size()!=0) {
+                            for (DocumentSnapshot doc : task.getResult().getDocuments()) {
+                                TravelPlan p=doc.toObject(TravelPlan.class);
+                                if(!p.getSpace().equals("0"))
+                                    plan_list.add(p);
+                            }
+                            progress.setVisibility(View.GONE);
+                            recycler_status.setVisibility(View.INVISIBLE);
+                        }
+                        else {
+                            progress.setVisibility(View.GONE);
+                            recycler_status.setVisibility(View.VISIBLE);
+                            recycler_status.setText("You haven't joined or created any plan...");
+                        }
+                        applyFilter();
+                    }
+                });
         return view;
     }
     @Override

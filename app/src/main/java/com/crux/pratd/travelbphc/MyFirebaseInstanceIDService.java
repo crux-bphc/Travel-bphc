@@ -1,11 +1,19 @@
 package com.crux.pratd.travelbphc;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.facebook.Profile;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
 
 import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -24,25 +32,22 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
     public void sendRegistrationToServer(){
         if(token==null)
             return;
-        ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
-        JSONObject json=new JSONObject();
-        try{
-            json.put("token",token);
-        }
-        catch (Exception e){
-            Log.d("Notification Service",e.toString());
-        }
-        Call<JSONObject> call = apiService.sendToken(json);
-        call.enqueue(new Callback<JSONObject>() {
-            @Override
-            public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
-                Log.d("Notification Service","Response:"+response.toString());
-            }
-
-            @Override
-            public void onFailure(Call<JSONObject> call, Throwable t) {
-
-            }
-        });
+        if(Profile.getCurrentProfile()==null)
+            return;
+        Map<String,String> map=new HashMap<>();
+        map.put("token",token);
+        FirebaseFirestore.getInstance().collection("user").document(Profile.getCurrentProfile().getId()).set(map)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d("Token Service","Updated Successfully");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d("Token Service","Updated Failed");
+                    }
+                });
     }
 }

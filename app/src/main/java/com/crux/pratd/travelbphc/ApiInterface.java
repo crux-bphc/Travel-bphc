@@ -17,6 +17,13 @@ import retrofit2.http.POST;
  */
 
 public interface ApiInterface {
-    @POST("token")
-    Call<JSONObject> sendToken(@Body JSONObject json);
+
+    @POST("request")
+    Call<JsonObject> sendReq(@Body JsonObject json);
+
+    @POST("accept")
+    Call<JsonObject> acceptReq(@Body JsonObject json);
+
+    @POST("leave")
+    Call<JsonObject> leavePlan(@Body JsonObject json);
 }
